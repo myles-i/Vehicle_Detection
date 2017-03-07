@@ -26,13 +26,14 @@ for image in images:
     else:
         cars.append(image)
 
-# Reduce the sample size because
-# The quiz evaluator times out after 13s of CPU time
-sample_size = 500
+#reduce sample size
+sample_size = 20000
 cars = cars[0:sample_size]
 notcars = notcars[0:sample_size]
+
+
 ### TODO: Tweak these parameters and see how the results change.
-color_space = 'RGB' # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
+color_space = 'HLS' # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
 orient = 9  # HOG orientations
 pix_per_cell = 8 # HOG pixels per cell
 cell_per_block = 2 # HOG cells per block
@@ -42,8 +43,6 @@ hist_bins = 16    # Number of histogram bins
 spatial_feat = True # Spatial features on or off
 hist_feat = True # Histogram features on or off
 hog_feat = True # HOG features on or off
-y_start_stop = [500, 720] # Min and max in y to search in slide_window()
-
 car_features = extract_features(cars, color_space=color_space, 
                         spatial_size=spatial_size, hist_bins=hist_bins, 
                         orient=orient, pix_per_cell=pix_per_cell, 
@@ -87,9 +86,7 @@ print('Test Accuracy of SVC = ', round(svc.score(X_test, y_test), 4))
 # Check the prediction time for a single sample
 t=time.time()
 
-image = mpimg.imread(images[0])
-draw_image = np.copy(image)
-image = mpimg.imread(cars[0])
-spatial_size = image.shape[0:2]
+
 with open('svc_pickle.p', 'wb') as f:  # Python 3: open(..., 'wb')
-    pickle.dump([hog_channel, color_space, y_start_stop, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins],f)
+    pickle.dump([svc, X_scaler, color_space , orient, pix_per_cell, cell_per_block, 
+        hog_channel, spatial_size, hist_bins, spatial_feat, hist_feat, hog_feat],f)
