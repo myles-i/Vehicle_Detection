@@ -34,23 +34,30 @@ for y_start_stop, x_start_stop, xy_window in zip(y_start_stop_list, x_start_stop
 
 heat = np.zeros_like(image[:,:,0]).astype(np.float)
 init = True
-def detection_pipeline(image, show_result = False, alpha = 0.75):
+def detection_pipeline(image, show_result = False, alpha = 0.8):
     # image = mpimg.imread('bbox-example-image.jpg')
     draw_image = np.copy(image)
-    ystart = 400
-    ystop  = 656
-    xstart = 400
-    xstop  = 1280
+    # ystart = 400
+    # ystop  = 656
+    # xstart = 400
+    # xstop  = 1280
+    # scales            = [3,           2,           1.5,          1,           .5]
+    # x_start_stop_list = [[600, 1280], [384, 1280], [480, 1280], [624, 1024], [624, 896]]
+    # y_start_stop_list = [[350, 656] , [400, 656],  [400, 600],  [400, 480],  [400, 450]]
+
     scales            = [2,           1.5,          1,           .5]
-    x_start_stop_list = [[384, 1280], [480, 1280], [624, 1280], [624, 1280]]
-    y_start_stop_list = [[400, 656],  [400, 600],  [400, 480],  [440, 480]]
+    x_start_stop_list = [[384, 1280], [480, 1280], [624, 1024], [624, 896]]
+    y_start_stop_list = [[400, 656],  [400, 600],  [400, 480],  [400, 450]]
+
     hot_windows = []
+    all_windows = []
     for y_start_stop, x_start_stop, scale in zip(y_start_stop_list, x_start_stop_list, scales):
 
-        new_hot_windows = find_cars(image, y_start_stop[0], y_start_stop[1], x_start_stop[0], x_start_stop[1], scale, svc,
+        new_hot_windows, new_all_windows = find_cars(image, y_start_stop[0], y_start_stop[1], x_start_stop[0], x_start_stop[1], scale, svc,
          X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins,spatial_feat=spatial_feat, 
                                     hist_feat=hist_feat, hog_feat=hog_feat, color_space = color_space)
         hot_windows = hot_windows + new_hot_windows
+        all_windows = all_windows + new_all_windows
     # hot_windows = search_windows(image, windows, svc, X_scaler, color_space=color_space, 
     #                             spatial_size=spatial_size, hist_bins=hist_bins, 
     #                             orient=orient, pix_per_cell=pix_per_cell, 
@@ -58,11 +65,17 @@ def detection_pipeline(image, show_result = False, alpha = 0.75):
     #                             hog_channel=hog_channel, spatial_feat=spatial_feat, 
     #                             hist_feat=hist_feat, hog_feat=hog_feat) 
     # Add heat to each box in box list
+
+
+    # window_img = draw_boxes(image, all_windows, color=(0, 0, 255), thick=6)    
+    # plt.figure( )
+    # plt.imshow(window_img)
+    # plt.show(block=False)
     global heat
     heat = add_heat(heat,hot_windows, alpha)
         
     # Apply threshold to help remove false positives
-    heat_thresh = apply_threshold(heat,1)
+    heat_thresh = apply_threshold(heat.copy(),1.5)
 
     # Visualize the heatmap when displayibng    
     heatmap = np.clip(heat_thresh, 0, 255)
@@ -77,7 +90,7 @@ def detection_pipeline(image, show_result = False, alpha = 0.75):
         plt.imshow(draw_img)
         plt.title('Car Positions')
         plt.subplot(122)
-        plt.imshow(heatmap, cmap='hot')
+        plt.imshow(heat, cmap='hot')
         plt.title('Heat Map')
         fig.tight_layout()
         plt.show(block = False) #block = False
@@ -92,23 +105,31 @@ def test_on_video(vid_name):
     vid_clip = clip1.fl_image(detection_pipeline) #NOTE: this function expects color images!!
     vid_clip.write_videofile(output_name, audio=False)
 # pdb.set_trace()
-image = mpimg.imread('test_images/test1.jpg')
-detection_pipeline(image, show_result = True, alpha = 0.)
-image = mpimg.imread('test_images/test1.jpg')
-detection_pipeline(image, show_result = True, alpha = 0.)
-image = mpimg.imread('test_images/test2.jpg')
-detection_pipeline(image, show_result = True, alpha = 0.)
-image = mpimg.imread('test_images/test3.jpg')
-detection_pipeline(image, show_result = True, alpha = 0.)
-image = mpimg.imread('test_images/test4.jpg')
-detection_pipeline(image, show_result = True, alpha = 0.)
-image = mpimg.imread('test_images/test5.jpg')
-detection_pipeline(image, show_result = True, alpha = 0.)
-image = mpimg.imread('test_images/test6.jpg')
-detection_pipeline(image, show_result = True, alpha = 0.)
+# image = mpimg.imread('test_images/test1.jpg')
+# init = True
+# detection_pipeline(image, show_result = True, alpha = 0.)
+# image = mpimg.imread('test_images/test1.jpg')
+# init = True
+# detection_pipeline(image, show_result = True, alpha = 0.)
+# image = mpimg.imread('test_images/test2.jpg')
+# init = True
+# detection_pipeline(image, show_result = True, alpha = 0.)
+# image = mpimg.imread('test_images/test3.jpg')
+# init = True
+# detection_pipeline(image, show_result = True, alpha = 0.)
+# image = mpimg.imread('test_images/test4.jpg')
+# init = True
+# detection_pipeline(image, show_result = True, alpha = 0.)
+# image = mpimg.imread('test_images/test5.jpg')
+# init = True
+# detection_pipeline(image, show_result = True, alpha = 0.)
+# image = mpimg.imread('test_images/test6.jpg')
+# init = True
+# detection_pipeline(image, show_result = True, alpha = 0.)
+
 
 # test_on_video('test_video.mp4')
-# test_on_video('project_video.mp4')
+test_on_video('project_video.mp4')
 
 # ystart = 400
 # ystop = 656

@@ -33,15 +33,15 @@ def get_hog_features(img, orient, pix_per_cell, cell_per_block,
 def convert_color(image, color_space = 'HSV'):
     if color_space != 'RGB':
         if color_space == 'HSV':
-            feature_image = cv2.cvtColor(image, cv2.COLOR_RGB2HSV).astype(np.float32)/255
+            feature_image = cv2.cvtColor(image, cv2.COLOR_RGB2HSV).astype(np.float32)
         elif color_space == 'LUV':
-            feature_image = cv2.cvtColor(image, cv2.COLOR_RGB2LUV).astype(np.float32)/255
+            feature_image = cv2.cvtColor(image, cv2.COLOR_RGB2LUV).astype(np.float32)
         elif color_space == 'HLS':
-            feature_image = cv2.cvtColor(image, cv2.COLOR_RGB2HLS).astype(np.float32)/255
+            feature_image = cv2.cvtColor(image, cv2.COLOR_RGB2HLS).astype(np.float32)
         elif color_space == 'YUV':
-            feature_image = cv2.cvtColor(image, cv2.COLOR_RGB2YUV).astype(np.float32)/255
+            feature_image = cv2.cvtColor(image, cv2.COLOR_RGB2YUV).astype(np.float32)
         elif color_space == 'YCrCb':
-            feature_image = cv2.cvtColor(image, cv2.COLOR_RGB2YCrCb).astype(np.float32)/255
+            feature_image = cv2.cvtColor(image, cv2.COLOR_RGB2YCrCb).astype(np.float32)
     else: feature_image = np.copy(image)  
     return feature_image
 
@@ -78,7 +78,7 @@ def extract_features(imgs, color_space='RGB', spatial_size=(32, 32),
         # Read in each one by one
         image = mpimg.imread(file)
         # apply color conversion if other than 'RGB'
-        feature_image = convert_color(image)
+        feature_image = convert_color(image, color_space)
 
         if spatial_feat == True:
             spatial_features = bin_spatial(feature_image, size=spatial_size)
@@ -172,7 +172,7 @@ def single_img_features(img, color_space='RGB', spatial_size=(32, 32),
     #1) Define an empty list to receive features
     img_features = []
     #2) Apply color conversion if other than 'RGB'
-    feature_image = convert_color(img)  
+    feature_image = convert_color(img, color_space)  
     #3) Compute spatial features if flag is set
     if spatial_feat == True:
         spatial_features = bin_spatial(feature_image, size=spatial_size)
@@ -241,7 +241,7 @@ def add_heat(heatmap, bbox_list, alpha):
     # Iterate through list of bboxes
     global init
     if init:
-        alpha = 0.3 # initialize to input to 0.7 of input
+        alpha = 0.5 # initialize to input to 0.5 of input
         init = False
     heatmap = heatmap*alpha
     print(np.max(heatmap))
@@ -250,7 +250,6 @@ def add_heat(heatmap, bbox_list, alpha):
         heatmap[box[0][1]:box[1][1], box[0][0]:box[1][0]] += 1.-alpha
 
     # Return updated heatmap
-    print(np.max(heatmap))
     return heatmap# Iterate through list of bboxes
     
 def apply_threshold(heatmap, threshold):
@@ -291,21 +290,23 @@ def find_cars(img, ystart, ystop, xstart, xstop, scale, svc, X_scaler, orient, p
     ch3 = ctrans_tosearch[:,:,2]
 
     # Define blocks and steps as above
-    nxblocks = (ch1.shape[1] // pix_per_cell)-1
-    nyblocks = (ch1.shape[0] // pix_per_cell)-1 
+    nxblocks = (ch1.shape[1] // pix_per_cell)
+    nyblocks = (ch1.shape[0] // pix_per_cell)
     nfeat_per_block = orient*cell_per_block**2
     # 64 was the orginal sampling rate, with 8 cells and 8 pix per cell
     window = 64
     nblocks_per_window = (window // pix_per_cell)-1 
     cells_per_step = 2  # Instead of overlap, define how many cells to step
-    nxsteps = (nxblocks - nblocks_per_window) // cells_per_step
-    nysteps = (nyblocks - nblocks_per_window) // cells_per_step
+    # pdb.set_trace()
+    nxsteps = (nxblocks - nblocks_per_window) // cells_per_step + 1
+    nysteps = (nyblocks - nblocks_per_window) // cells_per_step + 1
     
     # Compute individual channel HOG features for the entire image
     hog1 = get_hog_features(ch1, orient, pix_per_cell, cell_per_block, feature_vec=False)
     hog2 = get_hog_features(ch2, orient, pix_per_cell, cell_per_block, feature_vec=False)
     hog3 = get_hog_features(ch3, orient, pix_per_cell, cell_per_block, feature_vec=False)
     hot_windows = []
+    all_windows = []
     for xb in range(nxsteps):
         for yb in range(nysteps):
             ypos = yb*cells_per_step
@@ -335,13 +336,18 @@ def find_cars(img, ystart, ystop, xstart, xstop, scale, svc, X_scaler, orient, p
             #test_features = X_scaler.transform(np.hstack((shape_feat, hist_feat)).reshape(1, -1))    
             test_prediction = svc.predict(test_features)
 
+
+            # append window
+            xbox_left = np.int(xleft*scale)
+            ytop_draw = np.int(ytop*scale)
+            win_draw = np.int(window*scale)
+            window_bounds = ((xbox_left+xstart, ytop_draw+ystart),(xbox_left+win_draw+xstart,ytop_draw+win_draw+ystart))
+            all_windows.append(window_bounds)
             if test_prediction ==1:
-                xbox_left = np.int(xleft*scale)
-                ytop_draw = np.int(ytop*scale)
-                win_draw = np.int(window*scale)
-                # print(((xbox_left, ytop_draw+ystart),(xbox_left+win_draw,ytop_draw+win_draw+ystart)))
-                hot_windows.append(((xbox_left+xstart, ytop_draw+ystart),(xbox_left+win_draw+xstart,ytop_draw+win_draw+ystart)))
-    return hot_windows
+                hot_windows.append(window_bounds)
+                # print('xwidth =',window_bounds[1][0] - window_bounds[0][0])
+                # print('ywidth = ',window_bounds[1][1] - window_bounds[0][1])
+    return hot_windows, all_windows
             
     #         if test_prediction == 1:
     #             xbox_left = np.int(xleft*scale)
