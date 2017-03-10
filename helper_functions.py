@@ -244,7 +244,7 @@ def add_heat(heatmap, bbox_list, alpha):
         alpha = 0 # initialize to input to 0
         init = False
     heatmap = heatmap*alpha
-    print(np.max(heatmap))
+    # print(np.max(heatmap))
     for box in bbox_list:
         # Assuming each "box" takes the form ((x1, y1), (x2, y2))
         heatmap[box[0][1]:box[1][1], box[0][0]:box[1][0]] += 1.-alpha

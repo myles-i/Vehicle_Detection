@@ -68,7 +68,7 @@ def detection_pipeline(image, return_info = False, alpha = 0.8):
 
     # Visualize the heatmap when displayibng    
     heatmap = np.clip(heat_thresh, 0, 255)
-    print(np.max(heatmap))
+    # print(np.max(heatmap))
 
     # Find final boxes from heatmap using label function
     labels = label(heatmap)
