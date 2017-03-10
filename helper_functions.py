@@ -54,7 +54,7 @@ def bin_spatial(img, size=(32, 32)):
 
 # Define a function to compute color histogram features 
 # NEED TO CHANGE bins_range if reading .png files with mpimg!
-def color_hist(img, nbins=32, bins_range=(0, 256)):
+def color_hist(img, nbins=32, bins_range=(0, 1)):
     # Compute the histogram of the color channels separately
     channel1_hist = np.histogram(img[:,:,0], bins=nbins, range=bins_range)
     channel2_hist = np.histogram(img[:,:,1], bins=nbins, range=bins_range)
@@ -241,7 +241,7 @@ def add_heat(heatmap, bbox_list, alpha):
     # Iterate through list of bboxes
     global init
     if init:
-        alpha = 0.5 # initialize to input to 0.5 of input
+        alpha = 0 # initialize to input to 0
         init = False
     heatmap = heatmap*alpha
     print(np.max(heatmap))

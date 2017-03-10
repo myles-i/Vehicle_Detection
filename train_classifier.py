@@ -15,7 +15,7 @@ from sklearn.utils import shuffle
 # NOTE: the next import is only valid for scikit-learn version <= 0.17
 # for scikit-learn >= 0.18 use:
 # from sklearn.model_selection import train_test_split
-from sklearn.cross_validation import train_test_split
+from sklearn.model_selection import train_test_split
 
 # Divide up into cars and notcars
 images = glob.glob('*/**/*/*.png')
@@ -29,29 +29,7 @@ for image in images:
 cars = shuffle(cars)
 notcars = shuffle(notcars)
 
-
-
-# # find white cars
-# white_cars = []
-# for car in cars:
-#     image = mpimg.imread(car)
-#     if np.mean(image) > 0.6: #find white cars
-#         white_cars.append(car)
-#         # plt.figure()
-#         # plt.imshow(image)
-#         # plt.show(block = False)
-
-# # add back in a bunch of the white cars
-# for i in range(10):
-#     cars = cars + white_cars
-# cars = shuffle(cars)
-
-#reduce sample size
-sample_size = 8000
-cars = cars[0:sample_size]
-notcars = notcars[0:sample_size]
-
-### TODO: Tweak these parameters and see how the results change.
+###  Tweak these parameters and see how the results change.
 color_space = 'YCrCb' # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
 orient = 9  # HOG orientations
 pix_per_cell = 8 # HOG pixels per cell
@@ -90,6 +68,8 @@ rand_state = np.random.randint(0, 100)
 X_train, X_test, y_train, y_test = train_test_split(
     scaled_X, y, test_size=0.2, random_state=rand_state)
 
+#shuffle training data
+X_train, y_train = shuffle(X_train, y_train)
 print('Using:',orient,'orientations',pix_per_cell,
     'pixels per cell and', cell_per_block,'cells per block')
 print('Feature vector length:', len(X_train[0]))
